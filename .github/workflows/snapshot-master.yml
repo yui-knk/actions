@@ -4,7 +4,8 @@ on:
   push:
   pull_request:
   schedule:
-    - cron: '30 18 * * *' # Daily at 18:30 UTC
+    # - cron: '30 18 * * *' # Daily at 18:30 UTC
+    - cron: '30 * * * *'  # Daily at **:30 UTC
   repository_dispatch:
     types:
       - "make-snapshot"
