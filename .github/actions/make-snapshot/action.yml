@@ -25,7 +25,7 @@ runs:
         sudo apt-get install --no-install-recommends -q -y build-essential git bison autoconf ruby p7zip-full curl
       shell: bash
     - name: Checkout ruby/ruby for tool/make-snapshot
-      run: git clone --single-branch --depth=1 --branch=debug_unexpected_rb_parser_ary_data_type https://github.com/yui-knk/ruby ruby
+      run: git clone --single-branch --depth=1 --branch=add_RB_GC_GUARD_for_ast_value https://github.com/yui-knk/ruby ruby
       shell: bash
     - name: Fetch branches and notes
       run: |
