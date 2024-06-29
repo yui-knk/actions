@@ -57,18 +57,18 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.FTP_R_L_O_AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: us-west-2
         if: ${{ github.repository == 'ruby/actions' }}
-      - uses: ruby/action-slack@v3.2.2
-        with:
-          payload: |
-            {
-              "attachments": [{
-                "text": "${{ job.status }}: make-snapshot <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}>",
-                "color": "danger"
-              }]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SNAPSHOT_SLACK_WEBHOOK_URL }}
-        if: failure()
+      # - uses: ruby/action-slack@v3.2.2
+      #   with:
+      #     payload: |
+      #       {
+      #         "attachments": [{
+      #           "text": "${{ job.status }}: make-snapshot <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.workflow }}>",
+      #           "color": "danger"
+      #         }]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SNAPSHOT_SLACK_WEBHOOK_URL }}
+      #   if: failure()
 
   ubuntu:
     needs: make-snapshot
