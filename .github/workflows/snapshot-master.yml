@@ -1,6 +1,8 @@
 name: snapshot-master
 
 on:
+  push:
+  pull_request:
   schedule:
     - cron: '30 18 * * *' # Daily at 18:30 UTC
   repository_dispatch:
