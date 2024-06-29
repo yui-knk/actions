@@ -1,60 +1,60 @@
-name: ruby_versions
+# name: ruby_versions
 
-on:
-  workflow_call:
-    inputs:
-      engine:
-        description: "The type of Ruby engine"
-        default: "all"
-        type: string
-      versions:
-        description: "Additional Ruby versions"
-        default: "[]"
-        type: string
-      min_version:
-        description: "Minimum Ruby version"
-        type: number
-    outputs:
-      versions:
-        description: "Ruby versions"
-        value: ${{ jobs.ruby_versions.outputs.versions }}
-      latest:
-        description: "The latest Ruby release version"
-        value: ${{ jobs.ruby_versions.outputs.latest }}
+# on:
+#   workflow_call:
+#     inputs:
+#       engine:
+#         description: "The type of Ruby engine"
+#         default: "all"
+#         type: string
+#       versions:
+#         description: "Additional Ruby versions"
+#         default: "[]"
+#         type: string
+#       min_version:
+#         description: "Minimum Ruby version"
+#         type: number
+#     outputs:
+#       versions:
+#         description: "Ruby versions"
+#         value: ${{ jobs.ruby_versions.outputs.versions }}
+#       latest:
+#         description: "The latest Ruby release version"
+#         value: ${{ jobs.ruby_versions.outputs.latest }}
 
-jobs:
-  ruby_versions:
-    name: Generate Ruby versions
-    runs-on: ubuntu-latest
-    outputs:
-      versions: ${{ steps.versions.outputs.versions }}
-      latest: ${{ steps.versions.outputs.latest }}
-    steps:
-      - id: versions
-        run: |
-          #! ruby
-          require 'json'
-          require 'open-uri'
-          versions = JSON.parse(URI(ENV['CI_VERSIONS']).read)
-          min = versions.min.to_f
-          min_version = ENV['MIN_VERSION'].to_f
-          if min_version > 1.8 && min_version < min
-            versions += min_version.step(by: 0.1, to: min).
-                        map {|v| sprintf("%.1f",v)} - %w[2.8 2.9]
-          end
-          if min < min_version
-            versions -= min.step(by: 0.1, to: min_version - 0.1).
-                        map {|v| sprintf("%.1f",v)}
-          end
-          versions.concat(JSON.parse(ENV['VERSIONS'])).tap(&:uniq!).tap(&:sort!)
-          output = [
-            "versions=#{versions.to_json}\n",
-            "latest=#{versions.grep(/^\d/).last}\n",
-          ].join("")
-          File.open(ENV['GITHUB_OUTPUT'], "a") {|f| f.print output}
-          print output
-        shell: /usr/bin/ruby {0}
-        env:
-          CI_VERSIONS: https://cache.ruby-lang.org/pub/misc/ci_versions/${{ inputs.engine }}.json
-          VERSIONS: ${{ inputs.versions }}
-          MIN_VERSION: ${{ inputs.min_version }}
+# jobs:
+#   ruby_versions:
+#     name: Generate Ruby versions
+#     runs-on: ubuntu-latest
+#     outputs:
+#       versions: ${{ steps.versions.outputs.versions }}
+#       latest: ${{ steps.versions.outputs.latest }}
+#     steps:
+#       - id: versions
+#         run: |
+#           #! ruby
+#           require 'json'
+#           require 'open-uri'
+#           versions = JSON.parse(URI(ENV['CI_VERSIONS']).read)
+#           min = versions.min.to_f
+#           min_version = ENV['MIN_VERSION'].to_f
+#           if min_version > 1.8 && min_version < min
+#             versions += min_version.step(by: 0.1, to: min).
+#                         map {|v| sprintf("%.1f",v)} - %w[2.8 2.9]
+#           end
+#           if min < min_version
+#             versions -= min.step(by: 0.1, to: min_version - 0.1).
+#                         map {|v| sprintf("%.1f",v)}
+#           end
+#           versions.concat(JSON.parse(ENV['VERSIONS'])).tap(&:uniq!).tap(&:sort!)
+#           output = [
+#             "versions=#{versions.to_json}\n",
+#             "latest=#{versions.grep(/^\d/).last}\n",
+#           ].join("")
+#           File.open(ENV['GITHUB_OUTPUT'], "a") {|f| f.print output}
+#           print output
+#         shell: /usr/bin/ruby {0}
+#         env:
+#           CI_VERSIONS: https://cache.ruby-lang.org/pub/misc/ci_versions/${{ inputs.engine }}.json
+#           VERSIONS: ${{ inputs.versions }}
+#           MIN_VERSION: ${{ inputs.min_version }}

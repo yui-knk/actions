@@ -1,63 +1,63 @@
-name: coverage
-on:
-  schedule:
-    - cron: '0 2,5,8,11,14,17,20,23 * * *' # Every three hours
-  repository_dispatch:
-    types: "coverage"
+# name: coverage
+# on:
+#   schedule:
+#     - cron: '0 2,5,8,11,14,17,20,23 * * *' # Every three hours
+#   repository_dispatch:
+#     types: "coverage"
 
-jobs:
-  latest:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install libraries
-        run: |
-          set -x
-          sudo sed /etc/apt/sources.list -e "s/^# deb-src/deb-src/g" -i
-          sudo apt-get update -q || :
-          sudo apt-get install --no-install-recommends -q -y ruby lcov xz-utils libyaml-dev
-          sudo apt-get build-dep -q -y ruby$(ruby -e 'puts File.basename(RUBY_VERSION, ".*")')
+# jobs:
+#   latest:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Install libraries
+#         run: |
+#           set -x
+#           sudo sed /etc/apt/sources.list -e "s/^# deb-src/deb-src/g" -i
+#           sudo apt-get update -q || :
+#           sudo apt-get install --no-install-recommends -q -y ruby lcov xz-utils libyaml-dev
+#           sudo apt-get build-dep -q -y ruby$(ruby -e 'puts File.basename(RUBY_VERSION, ".*")')
 
-      - name: Checkout ruby/ruby
-        run: |
-          git clone --depth=1 https://github.com/ruby/ruby
-          cd ruby
-          git rev-parse HEAD
-          git log
+#       - name: Checkout ruby/ruby
+#         run: |
+#           git clone --depth=1 https://github.com/ruby/ruby
+#           cd ruby
+#           git rev-parse HEAD
+#           git log
 
-      - name: Fixed world writable dirs
-        run: |
-          mkdir -p $HOME/.cache
-          chmod -v a-w $HOME $HOME/.config
-          sudo chmod -R a-w /usr/share
-          sudo bash -c 'IFS=:; for d in '"$PATH"'; do chmod -v a-w $d; done' || :
-      - run: cd ruby && ./autogen.sh
-      - name: Configure with gcov
-        run: cd ruby && ./configure --enable-gcov CC=gcc
-      - name: Setup coverage tools
-        run: cd ruby && make update-coverage
-      - name: Build
-        run: cd ruby && make -j$((1 + $(nproc --all)))
-      - name: Tests
-        run: cd ruby && make -s check COVERAGE=true
-      - name: Aggregate coverage results
-        run: cd ruby && make lcov
-      - uses: actions/upload-artifact@v4
-        with:
-          name: coverage-latest-html
-          path: ruby/lcov-out
-      - uses: actions/upload-artifact@v4
-        with:
-          name: lcov-all.info
-          path: ruby/lcov-all.info
-      - name: Upload results
-        run: |
-          set -x
-          cd ruby
-          xz -9 lcov-all.info
-          RUBY_RUBY_GITHUB_SHA=$(git rev-parse HEAD)
-          aws s3 cp lcov-all.info.xz s3://rubyci/coverage/lcov-all-"$RUBY_RUBY_GITHUB_SHA".info.xz --no-progress
-          aws s3 sync lcov-out s3://rubyci/coverage-latest-html --no-progress
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.RUBYCI_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.RUBYCI_AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-west-2
+#       - name: Fixed world writable dirs
+#         run: |
+#           mkdir -p $HOME/.cache
+#           chmod -v a-w $HOME $HOME/.config
+#           sudo chmod -R a-w /usr/share
+#           sudo bash -c 'IFS=:; for d in '"$PATH"'; do chmod -v a-w $d; done' || :
+#       - run: cd ruby && ./autogen.sh
+#       - name: Configure with gcov
+#         run: cd ruby && ./configure --enable-gcov CC=gcc
+#       - name: Setup coverage tools
+#         run: cd ruby && make update-coverage
+#       - name: Build
+#         run: cd ruby && make -j$((1 + $(nproc --all)))
+#       - name: Tests
+#         run: cd ruby && make -s check COVERAGE=true
+#       - name: Aggregate coverage results
+#         run: cd ruby && make lcov
+#       - uses: actions/upload-artifact@v4
+#         with:
+#           name: coverage-latest-html
+#           path: ruby/lcov-out
+#       - uses: actions/upload-artifact@v4
+#         with:
+#           name: lcov-all.info
+#           path: ruby/lcov-all.info
+#       - name: Upload results
+#         run: |
+#           set -x
+#           cd ruby
+#           xz -9 lcov-all.info
+#           RUBY_RUBY_GITHUB_SHA=$(git rev-parse HEAD)
+#           aws s3 cp lcov-all.info.xz s3://rubyci/coverage/lcov-all-"$RUBY_RUBY_GITHUB_SHA".info.xz --no-progress
+#           aws s3 sync lcov-out s3://rubyci/coverage-latest-html --no-progress
+#         env:
+#           AWS_ACCESS_KEY_ID: ${{ secrets.RUBYCI_AWS_ACCESS_KEY_ID }}
+#           AWS_SECRET_ACCESS_KEY: ${{ secrets.RUBYCI_AWS_SECRET_ACCESS_KEY }}
+#           AWS_DEFAULT_REGION: us-west-2
